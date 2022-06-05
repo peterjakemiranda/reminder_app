@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:reminder_app/models/common/custom_color.dart';
 import 'package:reminder_app/models/common/custom_icon.dart';
 import 'package:reminder_app/models/common/custom_icon_collection.dart';
 import 'package:reminder_app/models/todo_list/todo_list.dart';
 
 import '../../models/common/custom_color_collection.dart';
+import '../../models/todo_list/todo_list_collection.dart';
 
 class AddListScreen extends StatefulWidget {
   const AddListScreen({Key? key}) : super(key: key);
@@ -47,12 +49,15 @@ class _AddListScreenState extends State<AddListScreen> {
               onPressed: _listName.isEmpty
                   ? null
                   : () {
-                      Navigator.pop(
-                          context,
-                          TodoList(id: '1', title: _textController.text, icon: {
+                      Provider.of<TodoListCollection>(context, listen: false)
+                          .addTodoList(TodoList(
+                              id: DateTime.now().toString(),
+                              title: _textController.text,
+                              icon: {
                             "id": _selectedIcon.id,
                             "color": _selectedColor.id,
                           }));
+                      Navigator.pop(context);
                     },
               child: Text(
                 'Add',

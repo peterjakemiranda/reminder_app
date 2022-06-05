@@ -4,11 +4,6 @@ import 'package:reminder_app/screens/add_list/add_list_screen.dart';
 import 'package:reminder_app/screens/add_reminder/add_reminder_screen.dart';
 
 class Footer extends StatelessWidget {
-  final addNewListCallback;
-  const Footer({
-    required this.addNewListCallback,
-  });
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -33,14 +28,13 @@ class Footer extends StatelessWidget {
             ],
           ),
           TextButton(
-            onPressed: () async {
-              TodoList newList = await Navigator.push(
+            onPressed: () {
+              Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => AddListScreen(),
                     fullscreenDialog: true,
                   ));
-              addNewListCallback(newList);
             },
             child: const Text('Add List'),
           ),

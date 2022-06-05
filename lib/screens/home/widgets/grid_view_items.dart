@@ -17,6 +17,7 @@ class _GridViewItemsState extends State<GridViewItems> {
   @override
   Widget build(BuildContext context) {
     return GridView.count(
+      physics: NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       crossAxisCount: 2,
       childAspectRatio: 16 / 9,
