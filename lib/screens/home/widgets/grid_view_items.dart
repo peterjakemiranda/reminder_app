@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:reminder_app/models/category/category.dart';
+import 'package:reminder_app/models/reminder/reminder.dart';
+import 'package:reminder_app/screens/view_list/view_list_by_category_screen.dart';
 
 class GridViewItems extends StatefulWidget {
   const GridViewItems({
@@ -16,6 +19,7 @@ class GridViewItems extends StatefulWidget {
 class _GridViewItemsState extends State<GridViewItems> {
   @override
   Widget build(BuildContext context) {
+    final allReminders = Provider.of<List<Reminder>>(context);
     return GridView.count(
       physics: NeverScrollableScrollPhysics(),
       shrinkWrap: true,
@@ -26,32 +30,61 @@ class _GridViewItemsState extends State<GridViewItems> {
       padding: const EdgeInsets.all(10),
       children: widget.categories
           .map(
-            (category) => Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: const Color(0xFF1A191D),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      category.icon,
-                      Text(
-                        '0',
-                        style: Theme.of(context).textTheme.headline6,
-                      )
-                    ],
-                  ),
-                  Text(category.name)
-                ],
+            (category) => InkWell(
+              onTap: getCategoryCount(
+                          id: category.id, allReminders: allReminders) >
+                      0
+                  ? () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => ViewListByCategoryScreen(
+                                    category: category,
+                                  )));
+                    }
+                  : null,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: const Color(0xFF1A191D),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        category.icon,
+                        Text(
+                          getCategoryCount(
+                            id: category.id,
+                            allReminders: allReminders,
+                          ).toString(),
+                          style: Theme.of(context).textTheme.headline6,
+                        )
+                      ],
+                    ),
+                    Text(category.name)
+                  ],
+                ),
               ),
             ),
           )
           .toList(),
     );
+  }
+
+  int getCategoryCount({required String id, List<Reminder>? allReminders}) {
+    if (id == 'all' && allReminders != null) {
+      return allReminders.length;
+    }
+    final categories =
+        allReminders?.where((reminder) => reminder.categoryId == id);
+    if (categories != null) {
+      return categories.length;
+    }
+    return 0;
   }
 }

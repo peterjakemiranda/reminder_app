@@ -1,5 +1,17 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:reminder_app/common/widgets/category_icon.dart';
+import 'package:reminder_app/models/category/category_collection.dart';
+import 'package:reminder_app/models/category/category.dart';
+import 'package:reminder_app/models/reminder/reminder.dart';
+import 'package:reminder_app/screens/add_reminder/select_reminder_category_screen.dart';
+import 'package:reminder_app/screens/add_reminder/select_reminder_list_screen.dart';
+
+import '../../models/todo_list/todo_list.dart';
 
 class AddReminderScreen extends StatefulWidget {
   const AddReminderScreen({Key? key}) : super(key: key);
@@ -14,6 +26,10 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
 
   String _title = '';
   String _notes = '';
+  TodoList? _selectedList;
+  Category _selectedCategory = CategoryCollection().categories[0];
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
 
   @override
   void initState() {
@@ -25,6 +41,18 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
     });
   }
 
+  _updateSelectedList(TodoList todoList) {
+    setState(() {
+      _selectedList = todoList;
+    });
+  }
+
+  _updateSelectedCategory(Category category) {
+    setState(() {
+      _selectedCategory = category;
+    });
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -33,16 +61,60 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final _todoLists = Provider.of<List<TodoList>>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Add Reminder'),
         actions: [
           TextButton(
-            onPressed: _title.isEmpty
-                ? null
-                : () {
-                    print('Add to database');
-                  },
+            onPressed:
+                _title.isEmpty || _selectedDate == null || _selectedTime == null
+                    ? null
+                    : () async {
+                        final user = Provider.of<User?>(context, listen: false);
+                        final reminderRef = FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user?.uid)
+                            .collection('reminders')
+                            .doc();
+                        _selectedList = _selectedList != null
+                            ? _selectedList
+                            : _todoLists.first;
+                        final newReminder = Reminder(
+                          id: reminderRef.id,
+                          title: _titleTextController.text,
+                          notes: _notesTextController.text,
+                          categoryId: _selectedCategory.id,
+                          list: _selectedList!.toJson(),
+                          dueDate: _selectedDate!.millisecondsSinceEpoch,
+                          dueTime: {
+                            'hour': _selectedTime!.hour,
+                            'minute': _selectedTime!.minute
+                          },
+                        );
+                        final listRef = FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user?.uid)
+                            .collection('todo_lists')
+                            .doc(_selectedList!.id);
+
+                        WriteBatch batch = FirebaseFirestore.instance.batch();
+
+                        batch.set(reminderRef, newReminder.toJson());
+                        batch.update(
+                          listRef,
+                          {'reminder_count': _selectedList!.reminderCount + 1},
+                        );
+
+                        try {
+                          await batch.commit();
+                          Navigator.pop(context);
+                          print('reminder added');
+                        } catch (e) {
+                          print(e);
+                        }
+                      },
             child: Text('Add'),
           )
         ],
@@ -92,7 +164,20 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                 elevation: 0,
                 margin: EdgeInsets.zero,
                 child: ListTile(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SelectReminderListScreen(
+                          todoLists: _todoLists,
+                          selectedList: _selectedList != null
+                              ? _selectedList!
+                              : _todoLists.first,
+                          selectedListCallback: _updateSelectedList,
+                        ),
+                      ),
+                    );
+                  },
                   tileColor: Theme.of(context).cardColor,
                   leading: Text(
                     'List',
@@ -105,7 +190,9 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                           bgColor: Colors.blueAccent,
                           iconData: Icons.calendar_today),
                       SizedBox(width: 10),
-                      Text('New List'),
+                      Text(_selectedList != null
+                          ? _selectedList!.title
+                          : _todoLists.first.title),
                       Icon(Icons.arrow_forward_ios)
                     ],
                   ),
@@ -122,7 +209,18 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                 elevation: 0,
                 margin: EdgeInsets.zero,
                 child: ListTile(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => SelectReminderCategoryScreen(
+                                selectedCategory: _selectedCategory,
+                                selectedCategoryCallback:
+                                    _updateSelectedCategory,
+                              ),
+                          fullscreenDialog: true),
+                    );
+                  },
                   tileColor: Theme.of(context).cardColor,
                   leading: Text(
                     'Category',
@@ -132,10 +230,99 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       CategoryIcon(
-                          bgColor: Colors.blueAccent,
-                          iconData: Icons.calendar_today),
+                          bgColor: _selectedCategory.icon.bgColor,
+                          iconData: _selectedCategory.icon.iconData),
                       SizedBox(width: 10),
-                      Text('Schedule'),
+                      Text(_selectedCategory.name),
+                      Icon(Icons.arrow_forward_ios)
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Card(
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                child: ListTile(
+                  onTap: () async {
+                    final DateTime? pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(
+                          Duration(days: 365),
+                        ));
+                    if (pickedDate != null) {
+                      setState(() {
+                        _selectedDate = pickedDate;
+                      });
+                    } else {
+                      print('no date was picked');
+                    }
+                  },
+                  tileColor: Theme.of(context).cardColor,
+                  leading: Text(
+                    'Date',
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CategoryIcon(
+                          bgColor: Colors.deepPurple,
+                          iconData: CupertinoIcons.calendar_badge_plus),
+                      SizedBox(width: 10),
+                      Text(_selectedDate != null
+                          ? DateFormat.yMMMd().format(_selectedDate!).toString()
+                          : 'Select Date'),
+                      Icon(Icons.arrow_forward_ios)
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Container(
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Card(
+                elevation: 0,
+                margin: EdgeInsets.zero,
+                child: ListTile(
+                  onTap: () async {
+                    final pickedTime = await showTimePicker(
+                        context: context, initialTime: TimeOfDay.now());
+                    if (pickedTime != null) {
+                      setState(() {
+                        _selectedTime = pickedTime;
+                      });
+                    } else {
+                      print('no time was picked');
+                    }
+                  },
+                  tileColor: Theme.of(context).cardColor,
+                  leading: Text(
+                    'Time',
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CategoryIcon(
+                          bgColor: Colors.purple,
+                          iconData: CupertinoIcons.time),
+                      SizedBox(width: 10),
+                      Text(_selectedTime != null
+                          ? _selectedTime!.format(context).toString()
+                          : 'Select Time'),
                       Icon(Icons.arrow_forward_ios)
                     ],
                   ),

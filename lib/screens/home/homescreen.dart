@@ -1,15 +1,10 @@
 import 'dart:collection';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:provider/provider.dart';
-import 'package:reminder_app/common/widgets/category_icon.dart';
-import 'package:reminder_app/models/category/category.dart';
 import 'package:flutter/material.dart';
 import 'package:reminder_app/models/category/category_collection.dart';
-import 'package:reminder_app/models/common/custom_color_collection.dart';
-import 'package:reminder_app/models/common/custom_icon_collection.dart';
 import 'package:reminder_app/models/todo_list/todo_list.dart';
-import 'package:reminder_app/models/todo_list/todo_list_collection.dart';
 import 'package:reminder_app/screens/home/widgets/list_view_items.dart';
 import 'package:reminder_app/screens/home/widgets/todo_lists.dart';
 
@@ -32,6 +27,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          IconButton(
+              onPressed: () {
+                FirebaseAuth.instance.signOut();
+              },
+              icon: Icon(Icons.logout)),
           TextButton(
               onPressed: () {
                 if (layoutType == 'grid') {
