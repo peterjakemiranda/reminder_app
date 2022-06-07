@@ -10,6 +10,7 @@ import 'package:reminder_app/models/category/category.dart';
 import 'package:reminder_app/models/reminder/reminder.dart';
 import 'package:reminder_app/screens/add_reminder/select_reminder_category_screen.dart';
 import 'package:reminder_app/screens/add_reminder/select_reminder_list_screen.dart';
+import 'package:reminder_app/services/database_service.dart';
 
 import '../../models/todo_list/todo_list.dart';
 
@@ -73,16 +74,11 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                     ? null
                     : () async {
                         final user = Provider.of<User?>(context, listen: false);
-                        final reminderRef = FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(user?.uid)
-                            .collection('reminders')
-                            .doc();
                         _selectedList = _selectedList != null
                             ? _selectedList
                             : _todoLists.first;
                         final newReminder = Reminder(
-                          id: reminderRef.id,
+                          id: null,
                           title: _titleTextController.text,
                           notes: _notesTextController.text,
                           categoryId: _selectedCategory.id,
@@ -93,22 +89,9 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                             'minute': _selectedTime!.minute
                           },
                         );
-                        final listRef = FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(user?.uid)
-                            .collection('todo_lists')
-                            .doc(_selectedList!.id);
-
-                        WriteBatch batch = FirebaseFirestore.instance.batch();
-
-                        batch.set(reminderRef, newReminder.toJson());
-                        batch.update(
-                          listRef,
-                          {'reminder_count': _selectedList!.reminderCount + 1},
-                        );
-
                         try {
-                          await batch.commit();
+                          DatabaseService(uid: user!.uid)
+                              .addReminder(reminder: newReminder);
                           Navigator.pop(context);
                           print('reminder added');
                         } catch (e) {

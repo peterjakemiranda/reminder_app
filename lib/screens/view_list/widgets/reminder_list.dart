@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:reminder_app/common/widgets/dismissable_background.dart';
 import 'package:reminder_app/models/todo_list/todo_list.dart';
+import 'package:reminder_app/services/database_service.dart';
 
 import '../../../common/helpers/helpers.dart';
 import '../../../models/reminder/reminder.dart';
@@ -28,25 +29,9 @@ class ReminderList extends StatelessWidget {
       background: DismissableBackground(),
       key: UniqueKey(),
       onDismissed: (direction) async {
-        WriteBatch batch = FirebaseFirestore.instance.batch();
-
-        final reminderRef = FirebaseFirestore.instance
-            .collection('users')
-            .doc(user?.uid)
-            .collection('reminders')
-            .doc(reminder.id);
-
-        final listRef = FirebaseFirestore.instance
-            .collection('users')
-            .doc(user?.uid)
-            .collection('todo_lists')
-            .doc(reminder.list['id']);
-
-        batch.delete(reminderRef);
-        batch.update(listRef, {'reminder_count': remindersForList.length - 1});
-
         try {
-          batch.commit();
+          DatabaseService(uid: user!.uid).removeReminder(
+              reminder: reminder, listReminderCount: remindersForList.length);
         } catch (e) {
           print(e);
         }
