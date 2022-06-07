@@ -7,6 +7,7 @@ import 'package:reminder_app/models/common/custom_icon.dart';
 import 'package:reminder_app/models/common/custom_icon_collection.dart';
 import 'package:reminder_app/models/todo_list/todo_list.dart';
 
+import '../../common/helpers/helpers.dart';
 import '../../models/common/custom_color_collection.dart';
 import '../../models/todo_list/todo_list_collection.dart';
 import '../../services/database_service.dart';
@@ -65,8 +66,10 @@ class _AddListScreenState extends State<AddListScreen> {
                       try {
                         DatabaseService(uid: user!.uid)
                             .addTodoList(todoList: newTodoList);
+                        showSnackbar(context, 'List added.');
                       } catch (e) {
                         print(e);
+                        showSnackbar(context, 'Unable to add list.');
                       }
                       Navigator.pop(context);
                     },

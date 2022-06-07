@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:reminder_app/common/helpers/helpers.dart';
 import 'package:reminder_app/models/todo_list/todo_list.dart';
 import 'package:reminder_app/screens/view_list/view_list_screen.dart';
 import 'package:reminder_app/services/database_service.dart';
@@ -45,8 +46,10 @@ class TodoLists extends StatelessWidget {
                     try {
                       DatabaseService(uid: user!.uid)
                           .removeTodoList(id: todoLists[index].id);
+                      showSnackbar(context, 'List deleted.');
                     } catch (e) {
                       print(e);
+                      showSnackbar(context, 'Unable to delete todo list');
                     }
                   },
                   direction: DismissDirection.endToStart,

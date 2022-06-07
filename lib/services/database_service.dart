@@ -104,7 +104,7 @@ class DatabaseService {
     batch.update(listRef, {'reminder_count': listReminderCount - 1});
 
     try {
-      batch.commit();
+      await batch.commit();
     } catch (e) {
       print(e);
     }

@@ -32,8 +32,10 @@ class ReminderList extends StatelessWidget {
         try {
           DatabaseService(uid: user!.uid).removeReminder(
               reminder: reminder, listReminderCount: remindersForList.length);
+          showSnackbar(context, 'Reminder deleted.');
         } catch (e) {
           print(e);
+          showSnackbar(context, 'Unable to delete reminder');
         }
       },
       child: Card(

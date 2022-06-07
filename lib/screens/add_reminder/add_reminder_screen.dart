@@ -12,6 +12,7 @@ import 'package:reminder_app/screens/add_reminder/select_reminder_category_scree
 import 'package:reminder_app/screens/add_reminder/select_reminder_list_screen.dart';
 import 'package:reminder_app/services/database_service.dart';
 
+import '../../common/helpers/helpers.dart';
 import '../../models/todo_list/todo_list.dart';
 
 class AddReminderScreen extends StatefulWidget {
@@ -94,8 +95,10 @@ class _AddReminderScreenState extends State<AddReminderScreen> {
                               .addReminder(reminder: newReminder);
                           Navigator.pop(context);
                           print('reminder added');
+                          showSnackbar(context, 'Reminder added.');
                         } catch (e) {
                           print(e);
+                          showSnackbar(context, 'Unable to add reminder.');
                         }
                       },
             child: Text('Add'),
