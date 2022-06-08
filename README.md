@@ -1,4 +1,4 @@
-# reminder_app
+# Reminder App with Provider, Firebase Authentication and Firestore Database
 
 A new Flutter project.
 
