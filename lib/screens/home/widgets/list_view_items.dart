@@ -32,36 +32,39 @@ class _ListViewItemsState extends State<ListViewItems> {
             .map((category) => SizedBox(
                   key: UniqueKey(),
                   height: LIST_VIEW_HEIGHT,
-                  child: ListTile(
-                    onTap: () {
-                      setState(() {
-                        category.toggleIsChecked();
-                      });
-                    },
-                    tileColor: Colors.grey[700],
-                    leading: Container(
-                      decoration: BoxDecoration(
-                        border: category.isChecked == false
-                            ? Border.all(color: Colors.white)
-                            : null,
-                        color: category.isChecked == true
-                            ? Colors.blueAccent
-                            : Colors.transparent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.check,
+                  child: Card(
+                    elevation: 0,
+                    child: ListTile(
+                      onTap: () {
+                        setState(() {
+                          category.toggleIsChecked();
+                        });
+                      },
+                      tileColor: Theme.of(context).cardColor,
+                      leading: Container(
+                        decoration: BoxDecoration(
+                          border: category.isChecked == false
+                              ? Border.all(color: Colors.white)
+                              : null,
                           color: category.isChecked == true
-                              ? Colors.white
-                              : Colors.transparent),
+                              ? Colors.blueAccent
+                              : Colors.transparent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.check,
+                            color: category.isChecked == true
+                                ? Colors.white
+                                : Colors.transparent),
+                      ),
+                      title: Row(
+                        children: [
+                          category.icon,
+                          SizedBox(width: 10),
+                          Text(category.name),
+                        ],
+                      ),
+                      trailing: Icon(Icons.reorder),
                     ),
-                    title: Row(
-                      children: [
-                        category.icon,
-                        SizedBox(width: 10),
-                        Text(category.name),
-                      ],
-                    ),
-                    trailing: Icon(Icons.reorder),
                   ),
                 ))
             .toList(),

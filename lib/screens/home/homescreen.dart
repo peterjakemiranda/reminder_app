@@ -3,6 +3,8 @@ import 'dart:collection';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:reminder_app/config/custom_theme.dart';
 import 'package:reminder_app/models/category/category_collection.dart';
 import 'package:reminder_app/models/todo_list/todo_list.dart';
 import 'package:reminder_app/screens/home/widgets/list_view_items.dart';
@@ -29,6 +31,13 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
               onPressed: () {
+                final customTheme =
+                    Provider.of<CustomTheme>(context, listen: false);
+                customTheme.toggleTheme();
+              },
+              icon: Icon(Icons.wb_sunny)),
+          IconButton(
+              onPressed: () {
                 FirebaseAuth.instance.signOut();
               },
               icon: Icon(Icons.logout)),
@@ -50,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: Container(
-        color: Colors.black,
+        color: Theme.of(context).primaryColor,
         child: Column(
           children: [
             Expanded(

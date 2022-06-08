@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:reminder_app/models/reminder/reminder.dart';
 import 'package:reminder_app/services/database_service.dart';
 
+import '../config/custom_theme.dart';
 import '../models/todo_list/todo_list.dart';
 import '../models/todo_list/todo_list_collection.dart';
 import 'add_list/add_list_screen.dart';
@@ -20,7 +21,7 @@ class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<User?>(context);
-
+    final customTheme = Provider.of<CustomTheme>(context);
     return MultiProvider(
       providers: [
         StreamProvider<List<TodoList>>.value(
@@ -37,31 +38,18 @@ class Wrapper extends StatelessWidget {
         )
       ],
       child: MaterialApp(
-          // initialRoute: '/',
-          routes: {
-            // '/': (context) => AuthenticateScreen(),
-            '/home': (context) => HomeScreen(),
-            '/add-list': (context) => AddListScreen(),
-            '/add-reminder': (context) => AddReminderScreen(),
-          },
-          home: user != null ? HomeScreen() : AuthenticateScreen(),
-          theme: ThemeData(
-              scaffoldBackgroundColor: Colors.black,
-              appBarTheme: AppBarTheme(color: Colors.black),
-              brightness: Brightness.dark,
-              iconTheme: IconThemeData(color: Colors.white),
-              accentColor: Colors.white,
-              textButtonTheme: TextButtonThemeData(
-                style: TextButton.styleFrom(
-                  primary: Colors.blueAccent,
-                  textStyle: TextStyle(
-                    fontSize: 20,
-                  ),
-                ),
-              ),
-              dividerColor: Colors.grey[600],
-              elevatedButtonTheme: ElevatedButtonThemeData(
-                  style: ElevatedButton.styleFrom(shape: StadiumBorder())))),
+        // initialRoute: '/',
+        routes: {
+          // '/': (context) => AuthenticateScreen(),
+          '/home': (context) => HomeScreen(),
+          '/add-list': (context) => AddListScreen(),
+          '/add-reminder': (context) => AddReminderScreen(),
+        },
+        home: user != null ? HomeScreen() : AuthenticateScreen(),
+        theme: customTheme.lightTheme,
+        darkTheme: customTheme.darkTheme,
+        themeMode: customTheme.currentTheme(),
+      ),
     );
   }
 }
